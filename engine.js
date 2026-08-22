@@ -34,18 +34,18 @@ const TOOLS = [
   },
   {
     name: "mark_streak",
-    description: "Mark a daily streak as done for today. Names: music, code, cook, or any added streak",
+    description: "Mark a daily streak",
     parameters: {
       type: "object",
       properties: {
-        name: { type: "string", description: "streak name such as music, code, or cook" },
+        name: { type: "string", description: "streak name" },
       },
       required: ["name"],
     },
   },
   {
     name: "unmark_streak",
-    description: "Undo today's mark on a streak",
+    description: "Unmark a daily streak",
     parameters: {
       type: "object",
       properties: {
@@ -59,15 +59,6 @@ const TOOLS = [
 const TOOLS_JSON = JSON.stringify(TOOLS);
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-function systemFacts() {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  const hh = String(now.getHours()).padStart(2, "0");
-  const mm = String(now.getMinutes()).padStart(2, "0");
-  return `date: ${y}-${m}-${d} ${DAYS[now.getDay()]} ${hh}:${mm}; locale: en-IN; device: tv; location: Thoraipakkam, Chennai`;
-}
 
 function allocCact(Module, bytes) {
   const ptr = Module._malloc(bytes.byteLength);
@@ -110,7 +101,7 @@ async function createNeedleEngine(onStatus) {
       "needle_init",
       "number",
       ["string", "string", "number"],
-      [systemFacts(), TOOLS_JSON, 0]
+      ['', TOOLS_JSON, 0]
     );
     if (rc < 0) throw new Error("needle_init " + rc);
   }
