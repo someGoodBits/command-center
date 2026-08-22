@@ -84,14 +84,20 @@ function needleLoad(Module, ptr, n) {
   }
 }
 
-async function createNeedleEngine() {
+async function createNeedleEngine(onStatus) {
+  const status = (msg) => {
+    if (onStatus) onStatus(msg);
+  };
   if (typeof createNeedle !== "function") {
     throw new Error("createNeedle missing");
   }
+  status("LOADING ENGINE");
   const Module = await createNeedle();
+  status("LOADING WEIGHTS");
   const res = await fetch("needle/needle2.cact");
   if (!res.ok) throw new Error("needle2.cact " + res.status);
   const bytes = new Uint8Array(await res.arrayBuffer());
+  status("LOADING MODEL");
   const cactPtr = allocCact(Module, bytes);
   const loaded = needleLoad(Module, cactPtr, bytes.byteLength);
   if (loaded !== 0) throw new Error("needle_load " + loaded);
@@ -124,6 +130,7 @@ async function createNeedleEngine() {
     return JSON.parse(Module.UTF8ToString(outPtr));
   }
 
+  status("INIT");
   init();
   return { init, reset, complete };
 }

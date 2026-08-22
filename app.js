@@ -438,12 +438,22 @@ renderTodos();
 renderStreaks();
 focusCmd();
 
-createNeedleEngine()
+function setNeedleStatus(text) {
+  const el = document.getElementById("needle-status");
+  if (el) el.textContent = text;
+}
+
+createNeedleEngine((stage) => {
+  setNeedleStatus("NEEDLE  " + stage);
+})
   .then((engine) => {
     needleEngine = engine;
+    setNeedleStatus("NEEDLE  READY");
   })
   .catch((err) => {
     console.error(err);
+    const msg = err && err.message ? err.message : String(err);
+    setNeedleStatus("NEEDLE  FAILED  " + msg);
   });
 
 if ("serviceWorker" in navigator) {
