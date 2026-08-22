@@ -1,7 +1,7 @@
 const TOOLS = [
   {
     name: "add_todo",
-    description: "Add a new task to the todo list",
+    description: "add todo task",
     parameters: {
       type: "object",
       properties: {
@@ -12,29 +12,29 @@ const TOOLS = [
   },
   {
     name: "complete_todo",
-    description: "Mark an existing todo as done by matching its text",
+    description: "Mark todo task done",
     parameters: {
       type: "object",
       properties: {
-        text: { type: "string", description: "words from the task to complete" },
+        text: { type: "string", description: "task hint" },
       },
       required: ["text"],
     },
   },
   {
     name: "delete_todo",
-    description: "Remove a todo from the list by matching its text",
+    description: "Remove todo task",
     parameters: {
       type: "object",
       properties: {
-        text: { type: "string", description: "words from the task to delete" },
+        text: { type: "string", description: "task hint" },
       },
       required: ["text"],
     },
   },
   {
     name: "mark_streak",
-    description: "Mark a daily streak",
+    description: "Mark streak",
     parameters: {
       type: "object",
       properties: {
@@ -45,11 +45,11 @@ const TOOLS = [
   },
   {
     name: "unmark_streak",
-    description: "Unmark a daily streak",
+    description: "Unmark streak",
     parameters: {
       type: "object",
       properties: {
-        name: { type: "string", description: "streak name such as music, code, or cook" },
+        name: { type: "string", description: "streak name" },
       },
       required: ["name"],
     },
@@ -57,7 +57,6 @@ const TOOLS = [
 ];
 
 const TOOLS_JSON = JSON.stringify(TOOLS);
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 
 function allocCact(Module, bytes) {
