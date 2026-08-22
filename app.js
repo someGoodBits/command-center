@@ -336,10 +336,22 @@ function showLastAction({ reasoning, output }) {
   document.getElementById("last-output").textContent = output || "—";
 }
 
+function waitFrame() {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => setTimeout(resolve, 0));
+  });
+}
+
 async function runCommand(text) {
   const query = String(text || "").trim();
-  if (!query || !needleEngine || needleBusy) return;
+  if (!query || needleBusy) return;
+  if (!needleEngine) {
+    setNeedleStatus("NEEDLE  NOT READY");
+    return;
+  }
   needleBusy = true;
+  setNeedleStatus("NEEDLE  WORKING");
+  await waitFrame();
   try {
     needleEngine.init();
     needleEngine.reset();
@@ -355,15 +367,20 @@ async function runCommand(text) {
         lines.push(out ? `${formatCall(call)}  ${out}` : formatCall(call));
       });
       const payload = results.length === 1 ? results[0] : results;
+      setNeedleStatus("NEEDLE  WORKING");
+      await waitFrame();
       response = needleEngine.complete(JSON.stringify(payload));
     }
     showLastAction({
       reasoning,
       output: lines.length ? lines.join("\n") : "no action",
     });
+    setNeedleStatus("NEEDLE  READY");
   } catch (err) {
     console.error(err);
+    const msg = err && err.message ? err.message : String(err);
     showLastAction({ reasoning: "", output: "error" });
+    setNeedleStatus("NEEDLE  FAILED  " + msg);
   } finally {
     needleBusy = false;
     focusCmd();
