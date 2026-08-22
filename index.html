@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="description" content="Always-on Command Center for TV" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <title>Command Center</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="panel">
+      <section class="col col-left">
+        <header class="logo" tabindex="-1">
+          <span class="logo-mark">CC</span>
+          <span class="logo-name">COMMAND CENTER</span>
+        </header>
+
+        <div class="widget" id="clock-weather">
+          <p class="date" id="date"></p>
+          <p class="time" id="time"></p>
+          <p class="wx-line">
+            <span id="wx-temp">--</span>
+            <span id="wx-cond">—</span>
+            <span class="wx-meta">H <span id="wx-high">--</span> L <span id="wx-low">--</span> HUM <span id="wx-hum">--</span></span>
+          </p>
+          <p class="place">THORAIPAKKAM</p>
+        </div>
+
+        <ul class="streaks" id="streaks"></ul>
+        <button type="button" class="add-streak" id="add-streak">+ STREAK</button>
+      </section>
+
+      <section class="col col-right">
+        <h1 class="todo-label">TODO</h1>
+        <ul class="todos" id="todos"></ul>
+        <form class="todo-add" id="todo-form">
+          <input
+            id="todo-input"
+            type="text"
+            maxlength="120"
+            autocomplete="off"
+            placeholder="ADD TASK"
+            aria-label="Add task"
+          />
+        </form>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
