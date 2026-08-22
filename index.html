@@ -15,6 +15,17 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <form class="cmd-form" id="cmd-form">
+      <input
+        id="cmd"
+        type="text"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        autofocus
+        aria-label="Command"
+      />
+    </form>
     <main class="panel">
       <section class="col col-left">
         <header class="logo" tabindex="-1">
@@ -51,7 +62,31 @@
           />
         </form>
       </section>
+
+      <aside class="last-action" id="last-action">
+        <p class="last-label">REASONING</p>
+        <p class="last-text" id="last-reason">—</p>
+        <p class="last-label">OUTPUT</p>
+        <p class="last-text" id="last-output">—</p>
+      </aside>
+
+      <form class="send-form" id="send-form">
+        <input
+          id="send-cmd"
+          type="text"
+          maxlength="200"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          placeholder="COMMAND"
+          aria-label="Send command"
+        />
+        <button type="submit">SEND</button>
+        <button type="button" id="reload">RELOAD</button>
+      </form>
     </main>
+    <script src="needle/needle.js"></script>
+    <script src="engine.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

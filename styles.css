@@ -28,12 +28,37 @@ body {
 
 body {
   user-select: none;
+  position: relative;
+}
+
+.cmd-form {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  opacity: 0;
+  z-index: 2;
+}
+
+#cmd {
+  width: 100%;
+  height: 1px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--fg);
+  caret-color: transparent;
+  font: inherit;
 }
 
 .panel {
   height: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr auto auto;
   padding: var(--pad);
   gap: var(--gap);
 }
@@ -234,6 +259,71 @@ body {
 .todo-add input::placeholder {
   color: var(--fg);
   opacity: 0.35;
+}
+
+.send-form {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: baseline;
+  gap: 1.5rem;
+}
+
+.last-action {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.last-label {
+  font-size: clamp(0.65rem, 1vw, 0.85rem);
+  letter-spacing: 0.42em;
+  opacity: 0.45;
+  margin-bottom: 0.25rem;
+}
+
+.last-label + .last-text + .last-label {
+  margin-top: 0.7rem;
+}
+
+.last-text {
+  font-size: clamp(0.85rem, 1.4vw, 1.15rem);
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  opacity: 0.85;
+  white-space: pre-wrap;
+  overflow: hidden;
+  max-height: 4.2em;
+}
+
+.send-form input {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--fg);
+  font: inherit;
+  letter-spacing: 0.16em;
+  font-size: clamp(1rem, 1.6vw, 1.35rem);
+  padding: 0.5rem 0;
+  user-select: text;
+  caret-color: var(--fg);
+}
+
+.send-form input::placeholder {
+  color: var(--fg);
+  opacity: 0.35;
+}
+
+.send-form button {
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: 0.28em;
+  font-size: clamp(0.75rem, 1.2vw, 1rem);
+  opacity: 0.55;
+  cursor: pointer;
+  padding: 0.5rem 0;
 }
 
 button:focus-visible,

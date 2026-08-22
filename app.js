@@ -121,6 +121,55 @@ function setTodos(todos) {
   save(KEYS.todos, todos);
 }
 
+function addTodo(text) {
+  const value = String(text || "").trim();
+  if (!value) return { ok: false, error: "empty" };
+  setTodos([...getTodos(), { id: uid(), text: value, done: false }]);
+  renderTodos();
+  return { ok: true, text: value };
+}
+
+function norm(s) {
+  return String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function findTodo(text) {
+  const q = String(text || "").trim().toLowerCase();
+  const nq = norm(q);
+  if (!q) return null;
+  const todos = getTodos();
+  return (
+    todos.find((t) => t.text.toLowerCase() === q) ||
+    todos.find((t) => t.text.toLowerCase().includes(q) || q.includes(t.text.toLowerCase())) ||
+    todos.find((t) => {
+      const n = norm(t.text);
+      return n === nq || n.includes(nq) || nq.includes(n);
+    }) ||
+    null
+  );
+}
+
+function completeTodo(text) {
+  const hit = findTodo(text);
+  if (!hit) return { ok: false, error: "not found" };
+  setTodos(getTodos().map((x) => (x.id === hit.id ? { ...x, done: true } : x)));
+  renderTodos();
+  return { ok: true, text: hit.text };
+}
+
+function deleteTodo(text) {
+  const hit = findTodo(text);
+  if (!hit) return { ok: false, error: "not found" };
+  setTodos(getTodos().filter((x) => x.id !== hit.id));
+  renderTodos();
+  return { ok: true, text: hit.text };
+}
+
+function toggleTodo(id) {
+  setTodos(getTodos().map((x) => (x.id === id ? { ...x, done: !x.done } : x)));
+  renderTodos();
+}
+
 function renderTodos() {
   const root = document.getElementById("todos");
   const todos = getTodos().slice().sort((a, b) => Number(a.done) - Number(b.done));
@@ -133,13 +182,14 @@ function renderTodos() {
       btn.innerHTML = `<span class="todo-mark">${t.done ? "x" : "o"}</span><span class="todo-text"></span>`;
       btn.querySelector(".todo-text").textContent = t.text;
       btn.addEventListener("click", () => {
-        setTodos(getTodos().map((x) => (x.id === t.id ? { ...x, done: !x.done } : x)));
-        renderTodos();
+        toggleTodo(t.id);
+        focusCmd();
       });
       btn.addEventListener("contextmenu", (e) => {
         e.preventDefault();
         setTodos(getTodos().filter((x) => x.id !== t.id));
         renderTodos();
+        focusCmd();
       });
       li.append(btn);
       return li;
@@ -160,6 +210,38 @@ function setStreaks(streaks) {
   save(KEYS.streaks, streaks);
 }
 
+function findStreak(name) {
+  const q = norm(name);
+  if (!q) return null;
+  const streaks = getStreaks();
+  return (
+    streaks.find((s) => norm(s.label) === q) ||
+    streaks.find((s) => {
+      const n = norm(s.label);
+      return n.includes(q) || q.includes(n);
+    }) ||
+    null
+  );
+}
+
+function applyStreak(id, wantToday) {
+  const today = todayStr();
+  const yday = yesterdayStr();
+  setStreaks(
+    getStreaks().map((s) => {
+      if (s.id !== id) return s;
+      const isToday = s.lastDate === today;
+      if (wantToday === isToday) return s;
+      if (wantToday) {
+        if (s.lastDate === yday) return { ...s, lastDate: today, count: s.count + 1 };
+        return { ...s, lastDate: today, count: 1 };
+      }
+      return { ...s, lastDate: null, count: Math.max(0, s.count - 1) };
+    })
+  );
+  renderStreaks();
+}
+
 function markStreak(id) {
   const today = todayStr();
   const yday = yesterdayStr();
@@ -178,6 +260,20 @@ function markStreak(id) {
   renderStreaks();
 }
 
+function markStreakByName(name) {
+  const hit = findStreak(name);
+  if (!hit) return { ok: false, error: "not found" };
+  applyStreak(hit.id, true);
+  return { ok: true, name: hit.label };
+}
+
+function unmarkStreakByName(name) {
+  const hit = findStreak(name);
+  if (!hit) return { ok: false, error: "not found" };
+  applyStreak(hit.id, false);
+  return { ok: true, name: hit.label };
+}
+
 function renderStreaks() {
   const today = todayStr();
   const root = document.getElementById("streaks");
@@ -190,11 +286,94 @@ function renderStreaks() {
       btn.innerHTML = `<span class="streak-label"></span><span class="streak-count"></span>`;
       btn.querySelector(".streak-label").textContent = s.label;
       btn.querySelector(".streak-count").textContent = String(s.count);
-      btn.addEventListener("click", () => markStreak(s.id));
+      btn.addEventListener("click", () => {
+        markStreak(s.id);
+        focusCmd();
+      });
       li.append(btn);
       return li;
     })
   );
+}
+
+function executeCall(call) {
+  const args = call.arguments || {};
+  switch (call.name) {
+    case "add_todo":
+      return addTodo(args.text);
+    case "complete_todo":
+      return completeTodo(args.text);
+    case "delete_todo":
+      return deleteTodo(args.text);
+    case "mark_streak":
+      return markStreakByName(args.name);
+    case "unmark_streak":
+      return unmarkStreakByName(args.name);
+    default:
+      return { ok: false, error: "unknown tool" };
+  }
+}
+
+let needleEngine = null;
+let needleBusy = false;
+
+function formatCall(call) {
+  const args = call.arguments || {};
+  const bits = Object.values(args).filter((v) => v != null && v !== "");
+  return [call.name, ...bits].join("  ");
+}
+
+function formatResult(result) {
+  if (!result) return "";
+  if (result.ok === false) return result.error || "failed";
+  if (result.text) return result.text;
+  if (result.name) return result.name;
+  return "ok";
+}
+
+function showLastAction({ reasoning, output }) {
+  document.getElementById("last-reason").textContent = reasoning || "—";
+  document.getElementById("last-output").textContent = output || "—";
+}
+
+async function runCommand(text) {
+  const query = String(text || "").trim();
+  if (!query || !needleEngine || needleBusy) return;
+  needleBusy = true;
+  try {
+    needleEngine.init();
+    needleEngine.reset();
+    let response = needleEngine.complete(query);
+    const reasoning = response.reasoning || "";
+    const lines = [];
+    for (let step = 0; step < 8; step++) {
+      const calls = response.function_calls || [];
+      if (response.type === "respond" || !calls.length) break;
+      const results = calls.map(executeCall);
+      calls.forEach((call, i) => {
+        const out = formatResult(results[i]);
+        lines.push(out ? `${formatCall(call)}  ${out}` : formatCall(call));
+      });
+      const payload = results.length === 1 ? results[0] : results;
+      response = needleEngine.complete(JSON.stringify(payload));
+    }
+    showLastAction({
+      reasoning,
+      output: lines.length ? lines.join("\n") : "no action",
+    });
+  } catch (err) {
+    console.error(err);
+    showLastAction({ reasoning: "", output: "error" });
+  } finally {
+    needleBusy = false;
+    focusCmd();
+  }
+}
+
+function focusCmd() {
+  const cmd = document.getElementById("cmd");
+  if (!cmd) return;
+  requestAnimationFrame(() => cmd.focus());
 }
 
 document.getElementById("todo-form").addEventListener("submit", (e) => {
@@ -202,19 +381,52 @@ document.getElementById("todo-form").addEventListener("submit", (e) => {
   const input = document.getElementById("todo-input");
   const text = input.value.trim();
   if (!text) return;
-  setTodos([...getTodos(), { id: uid(), text, done: false }]);
+  addTodo(text);
   input.value = "";
-  renderTodos();
 });
 
 document.getElementById("add-streak").addEventListener("click", () => {
   const label = prompt("STREAK NAME");
-  if (!label || !label.trim()) return;
+  if (!label || !label.trim()) {
+    focusCmd();
+    return;
+  }
   setStreaks([
     ...getStreaks(),
     { id: uid(), label: label.trim().toUpperCase(), count: 0, lastDate: null },
   ]);
   renderStreaks();
+  focusCmd();
+});
+
+function submitCommand(input) {
+  const text = input.value;
+  input.value = "";
+  runCommand(text);
+}
+
+document.getElementById("cmd-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  submitCommand(document.getElementById("cmd"));
+});
+
+document.getElementById("send-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  submitCommand(document.getElementById("send-cmd"));
+});
+
+document.getElementById("reload").addEventListener("click", async () => {
+  try {
+    const regs = (navigator.serviceWorker && (await navigator.serviceWorker.getRegistrations())) || [];
+    await Promise.all(regs.map((r) => r.unregister()));
+    const keys = (window.caches && (await caches.keys())) || [];
+    await Promise.all(keys.map((k) => caches.delete(k)));
+  } catch {
+    /* still reload */
+  }
+  const url = new URL(location.href);
+  url.searchParams.set("r", String(Date.now()));
+  location.replace(url.toString());
 });
 
 renderClock();
@@ -224,6 +436,15 @@ fetchWeather();
 setInterval(fetchWeather, 15 * 60 * 1000);
 renderTodos();
 renderStreaks();
+focusCmd();
+
+createNeedleEngine()
+  .then((engine) => {
+    needleEngine = engine;
+  })
+  .catch((err) => {
+    console.error(err);
+  });
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js").catch(() => {});
