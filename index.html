@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=overlays-content" />
     <meta name="theme-color" content="#000000" />
     <meta name="color-scheme" content="dark" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -13,24 +13,19 @@
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <title>Command Center</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
   </head>
   <body>
-    <form class="cmd-form" id="cmd-form">
-      <input
-        id="cmd"
-        type="text"
-        autocomplete="off"
-        autocapitalize="off"
-        spellcheck="false"
-        autofocus
-        aria-label="Command"
-      />
-    </form>
     <main class="panel">
       <section class="col col-left">
         <header class="logo" tabindex="-1">
-          <span class="logo-mark">CC</span>
-          <span class="logo-name">COMMAND CENTER</span>
+          <img width="32" height="32" src="icons/icon.svg" alt="Command Center" class="logo-mark">
+          <span class="logo-name">
+            <div>COMMAND</div>
+            <div>CENTER</div>
+          </span>
         </header>
 
         <div class="widget" id="clock-weather">
@@ -39,54 +34,51 @@
           <p class="wx-line">
             <span id="wx-temp">--</span>
             <span id="wx-cond">—</span>
-            <span class="wx-meta">H <span id="wx-high">--</span> L <span id="wx-low">--</span> HUM <span id="wx-hum">--</span></span>
           </p>
-          <p class="place">THORAIPAKKAM</p>
         </div>
 
-        <ul class="streaks" id="streaks"></ul>
-        <button type="button" class="add-streak" id="add-streak">+ STREAK</button>
+        <div class="streaks" id="streaks"></div>
       </section>
 
       <section class="col col-right">
         <h1 class="todo-label">TODO</h1>
         <ul class="todos" id="todos"></ul>
-        <form class="todo-add" id="todo-form">
-          <input
-            id="todo-input"
-            type="text"
-            maxlength="120"
-            autocomplete="off"
-            placeholder="ADD TASK"
-            aria-label="Add task"
-          />
-        </form>
       </section>
+    </main>
 
-      <aside class="last-action" id="last-action">
-        <p class="last-label">REASONING</p>
-        <p class="last-text" id="last-reason">—</p>
-        <p class="last-label">OUTPUT</p>
-        <p class="last-text" id="last-output">—</p>
-      </aside>
+    <div class="dock">
+      <div class="logs">
+        <div class="last-action" id="last-action">
+          <div class="dock-line" id="last-reason"></div>
+          <div class="dock-line" id="last-output"></div>
+        </div>
+        <p class="dock-line" id="needle-status">NEEDLE  LOADING</p>
+      </div>
+      <nav class="actions">
+        <button type="button" id="open-cmd">COMMAND</button>
+        <button type="button" id="open-task">ADD TASK</button>
+        <button type="button" id="open-streak">ADD STREAK</button>
+        <button type="button" id="reload">RELOAD</button>
+      </nav>
+    </div>
 
-      <form class="send-form" id="send-form">
-        <input
-          id="send-cmd"
-          type="text"
-          maxlength="200"
+    <div class="overlay" id="cmd-overlay" hidden>
+      <form class="overlay-form" id="overlay-form">
+        <p class="overlay-label" id="overlay-label">COMMAND</p>
+        <textarea
+          id="overlay-cmd"
+          rows="1"
+          maxlength="400"
           autocomplete="off"
           autocapitalize="off"
           spellcheck="false"
-          placeholder="COMMAND"
-          aria-label="Send command"
-        />
-        <button type="submit">SEND</button>
-        <button type="button" id="reload">RELOAD</button>
+          enterkeyhint="done"
+          aria-label="Input"
+        ></textarea>
       </form>
+      <p class="overlay-wait" id="overlay-wait" hidden>PROCESSING REQUEST</p>
+    </div>
 
-      <p class="needle-status" id="needle-status">NEEDLE  LOADING</p>
-    </main>
     <script src="needle/needle.js"></script>
     <script src="engine.js"></script>
     <script src="app.js"></script>

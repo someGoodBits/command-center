@@ -14,27 +14,28 @@ const DEFAULT_STREAKS = [
   { id: "music", label: "MUSIC", count: 0, lastDate: null },
   { id: "code", label: "CODE 1H", count: 0, lastDate: null },
   { id: "cook", label: "COOK", count: 0, lastDate: null },
+  { id: "test", label: "Test", count: 0, lastDate: null },
 ];
 
 const WMO = {
   0: "CLEAR",
   1: "CLEAR",
-  2: "CLOUD",
-  3: "CLOUD",
-  45: "FOG",
-  48: "FOG",
+  2: "CLOUDY",
+  3: "CLOUDY",
+  45: "FOGY",
+  48: "FOGY",
   51: "DRIZZLE",
   53: "DRIZZLE",
   55: "DRIZZLE",
-  61: "RAIN",
-  63: "RAIN",
-  65: "RAIN",
+  61: "RAINY",
+  63: "RAINY",
+  65: "RAINY",
   71: "SNOW",
   73: "SNOW",
   75: "SNOW",
-  80: "RAIN",
-  81: "RAIN",
-  82: "RAIN",
+  80: "RAINY",
+  81: "RAINY",
+  82: "RAINY",
   95: "STORM",
   96: "STORM",
   99: "STORM",
@@ -77,16 +78,13 @@ function renderClock() {
   document.getElementById("date").textContent =
     `${days[now.getDay()]} ${pad(now.getDate())} ${months[now.getMonth()]} ${now.getFullYear()}`;
   document.getElementById("time").textContent =
-    `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    `${pad(now.getHours())}:${pad(now.getMinutes())}`;
 }
 
 function applyWeather(data) {
   if (!data) return;
   document.getElementById("wx-temp").textContent = `${Math.round(data.temp)}°`;
   document.getElementById("wx-cond").textContent = data.cond;
-  document.getElementById("wx-high").textContent = Math.round(data.high);
-  document.getElementById("wx-low").textContent = Math.round(data.low);
-  document.getElementById("wx-hum").textContent = `${Math.round(data.hum)}`;
 }
 
 async function fetchWeather() {
@@ -176,20 +174,17 @@ function renderTodos() {
   root.replaceChildren(
     ...todos.map((t) => {
       const li = document.createElement("li");
-      const btn = document.createElement("button");
-      btn.type = "button";
+      const btn = document.createElement("div");    
       btn.className = `todo${t.done ? " is-done" : ""}`;
-      btn.innerHTML = `<span class="todo-mark">${t.done ? "x" : "o"}</span><span class="todo-text"></span>`;
+      btn.innerHTML = `<span class="todo-mark">${t.done ? "[x]" : "[ ]"}</span><span class="todo-text"></span>`;
       btn.querySelector(".todo-text").textContent = t.text;
       btn.addEventListener("click", () => {
         toggleTodo(t.id);
-        focusCmd();
       });
       btn.addEventListener("contextmenu", (e) => {
         e.preventDefault();
         setTodos(getTodos().filter((x) => x.id !== t.id));
         renderTodos();
-        focusCmd();
       });
       li.append(btn);
       return li;
@@ -279,16 +274,15 @@ function renderStreaks() {
   const root = document.getElementById("streaks");
   root.replaceChildren(
     ...getStreaks().map((s) => {
-      const li = document.createElement("li");
+      const li = document.createElement("div");
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = `streak${s.lastDate === today ? " is-today" : ""}`;
-      btn.innerHTML = `<span class="streak-label"></span><span class="streak-count"></span>`;
-      btn.querySelector(".streak-label").textContent = s.label;
+      btn.innerHTML = `<span class="streak-count"></span><span class="streak-label"></span>`;
       btn.querySelector(".streak-count").textContent = String(s.count);
+      btn.querySelector(".streak-label").textContent = s.label;
       btn.addEventListener("click", () => {
         markStreak(s.id);
-        focusCmd();
       });
       li.append(btn);
       return li;
@@ -331,9 +325,20 @@ function formatResult(result) {
   return "ok";
 }
 
-function showLastAction({ reasoning, output }) {
+function formatConfidence(value) {
+  if (typeof value !== "number" || Number.isNaN(value)) return "";
+  return `CONF  ${value.toFixed(2)}`;
+}
+
+function showLastAction({ reasoning, output, confidence }) {
   document.getElementById("last-reason").textContent = reasoning || "—";
-  document.getElementById("last-output").textContent = output || "—";
+  const conf = formatConfidence(confidence);
+  const out = output || "—";
+  document.getElementById("last-output").textContent = conf ? `${out}    ${conf}` : out;
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function waitFrame() {
@@ -351,12 +356,12 @@ async function runCommand(text) {
   }
   needleBusy = true;
   setNeedleStatus("NEEDLE  WORKING");
-  await waitFrame();
   try {
     needleEngine.init();
     needleEngine.reset();
     let response = needleEngine.complete(query);
     const reasoning = response.reasoning || "";
+    let confidence = response.confidence;
     const lines = [];
     for (let step = 0; step < 8; step++) {
       const calls = response.function_calls || [];
@@ -367,69 +372,126 @@ async function runCommand(text) {
         lines.push(out ? `${formatCall(call)}  ${out}` : formatCall(call));
       });
       const payload = results.length === 1 ? results[0] : results;
-      setNeedleStatus("NEEDLE  WORKING");
-      await waitFrame();
       response = needleEngine.complete(JSON.stringify(payload));
+      if (typeof response.confidence === "number") confidence = response.confidence;
     }
     showLastAction({
       reasoning,
-      output: lines.length ? lines.join("\n") : "no action",
+      output: lines.length ? lines.join("  ·  ") : "no action",
+      confidence,
     });
     setNeedleStatus("NEEDLE  READY");
   } catch (err) {
     console.error(err);
     const msg = err && err.message ? err.message : String(err);
-    showLastAction({ reasoning: "", output: "error" });
+    showLastAction({ reasoning: "", output: "error", confidence: null });
     setNeedleStatus("NEEDLE  FAILED  " + msg);
   } finally {
     needleBusy = false;
-    focusCmd();
   }
 }
 
-function focusCmd() {
-  const cmd = document.getElementById("cmd");
-  if (!cmd) return;
-  requestAnimationFrame(() => cmd.focus());
+const overlay = document.getElementById("cmd-overlay");
+const overlayForm = document.getElementById("overlay-form");
+const overlayCmd = document.getElementById("overlay-cmd");
+const overlayWait = document.getElementById("overlay-wait");
+const overlayLabel = document.getElementById("overlay-label");
+
+let overlaySubmit = null;
+
+function fitOverlayCmd() {
+  overlayCmd.style.height = "auto";
+  overlayCmd.style.height = `${overlayCmd.scrollHeight}px`;
 }
 
-document.getElementById("todo-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const input = document.getElementById("todo-input");
-  const text = input.value.trim();
-  if (!text) return;
-  addTodo(text);
-  input.value = "";
-});
+function openInput(label, onSubmit) {
+  overlaySubmit = onSubmit;
+  overlayLabel.textContent = label;
+  overlayCmd.setAttribute("aria-label", label);
+  overlayWait.hidden = true;
+  overlayForm.hidden = false;
+  overlay.classList.remove("is-wait");
+  overlay.hidden = false;
+  overlayCmd.value = "";
+  overlayCmd.readOnly = false;
+  overlayCmd.style.height = "auto";
+  requestAnimationFrame(() => {
+    overlayCmd.focus();
+    fitOverlayCmd();
+  });
+}
 
-document.getElementById("add-streak").addEventListener("click", () => {
-  const label = prompt("STREAK NAME");
-  if (!label || !label.trim()) {
-    focusCmd();
+function closeInput() {
+  overlayCmd.blur();
+  overlayCmd.value = "";
+  overlayCmd.readOnly = false;
+  overlayCmd.style.height = "auto";
+  overlay.classList.remove("is-wait");
+  overlayWait.hidden = true;
+  overlayForm.hidden = false;
+  overlay.hidden = true;
+  overlaySubmit = null;
+}
+
+async function submitOverlay() {
+  const text = overlayCmd.value.trim();
+  const onSubmit = overlaySubmit;
+  overlayCmd.blur();
+  overlayCmd.readOnly = true;
+  if (!text || !onSubmit) {
+    closeInput();
     return;
   }
-  setStreaks([
-    ...getStreaks(),
-    { id: uid(), label: label.trim().toUpperCase(), count: 0, lastDate: null },
-  ]);
-  renderStreaks();
-  focusCmd();
-});
-
-function submitCommand(input) {
-  const text = input.value;
-  input.value = "";
-  runCommand(text);
+  overlayForm.hidden = true;
+  overlayWait.hidden = false;
+  overlay.classList.add("is-wait");
+  overlay.hidden = false;
+  await waitFrame();
+  await wait(700);
+  await onSubmit(text);
+  closeInput();
 }
 
-document.getElementById("cmd-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-  submitCommand(document.getElementById("cmd"));
+function addStreak(label) {
+  const name = String(label || "").trim().toUpperCase();
+  if (!name) return;
+  setStreaks([
+    ...getStreaks(),
+    { id: uid(), label: name, count: 0, lastDate: null },
+  ]);
+  renderStreaks();
+}
+
+document.getElementById("open-cmd").addEventListener("click", () => {
+  openInput("COMMAND", runCommand);
 });
 
-document.getElementById("send-form").addEventListener("submit", (e) => {
+document.getElementById("open-task").addEventListener("click", () => {
+  openInput("ADD TASK", (text) => addTodo(text));
+});
+
+document.getElementById("open-streak").addEventListener("click", () => {
+  openInput("ADD STREAK", (text) => addStreak(text));
+});
+
+overlayForm.addEventListener("submit", (e) => {
   e.preventDefault();
-  submitCommand(document.getElementById("send-cmd"));
+  submitOverlay();
+});
+
+overlayCmd.addEventListener("input", fitOverlayCmd);
+
+overlayCmd.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    submitOverlay();
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !overlay.hidden && !overlay.classList.contains("is-wait")) {
+    closeInput();
+  }
 });
 
 document.getElementById("reload").addEventListener("click", async () => {
@@ -453,7 +515,6 @@ fetchWeather();
 setInterval(fetchWeather, 15 * 60 * 1000);
 renderTodos();
 renderStreaks();
-focusCmd();
 
 function setNeedleStatus(text) {
   const el = document.getElementById("needle-status");

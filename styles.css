@@ -10,56 +10,41 @@
   --bg: #000;
   --fg: #fff;
   --mute: #fff;
-  --pad: clamp(2rem, 4vw, 4.5rem);
+  --pad: clamp(1rem, 2vw, 2.5rem);
   --gap: clamp(1.5rem, 3vw, 3rem);
 }
 
 html,
 body {
   height: 100%;
+  width: 100%;
   background: var(--bg);
   color: var(--fg);
-  font-family: ui-monospace, "Cascadia Code", "Cascadia Mono", Consolas, "Courier New", monospace;
+  font-family: "Ubuntu Mono", monospace;
   font-weight: 400;
+  font-style: normal;
   letter-spacing: 0.06em;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
+html {
+  position: fixed;
+  inset: 0;
+}
+
 body {
   user-select: none;
-  position: relative;
-}
-
-.cmd-form {
   position: fixed;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: 1px;
-  margin: 0;
-  overflow: hidden;
-  opacity: 0;
-  z-index: 2;
-}
-
-#cmd {
-  width: 100%;
-  height: 1px;
-  border: 0;
-  outline: none;
-  background: transparent;
-  color: var(--fg);
-  caret-color: transparent;
-  font: inherit;
+  inset: 0;
 }
 
 .panel {
   height: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr auto auto auto;
   padding: var(--pad);
+  padding-bottom: 10rem;
   gap: var(--gap);
 }
 
@@ -75,7 +60,7 @@ body {
 
 .logo {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 1.1rem;
   margin-bottom: clamp(2rem, 5vh, 4rem);
 }
@@ -93,7 +78,7 @@ body {
 }
 
 .widget {
-  margin-bottom: clamp(2.2rem, 6vh, 5rem);
+  margin-bottom: clamp(1.4rem, 3.5vh, 2.4rem);
 }
 
 .date {
@@ -105,6 +90,7 @@ body {
 
 .time {
   font-size: clamp(3.4rem, 8.5vw, 7.2rem);
+  font-weight: 900;
   line-height: 0.95;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
@@ -138,26 +124,31 @@ body {
 }
 
 .streaks {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  display: grid ;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-auto-rows: auto ;
 }
 
 .streak {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: baseline;
-  width: 100%;
-  background: none;
-  border: 0;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  padding: 0.45rem 0;
-  letter-spacing: 0.22em;
-  font-size: clamp(1rem, 1.7vw, 1.4rem);
+  appearance: none ;
+  font-family: inherit ;
+  display: flex ;
+  flex-direction: column ;
+  align-items: flex-start ;
+  width: 100% ;
+  height: 100% ;
+  text-align: left ;
+  padding: 0 ;
+  border: none ;
+  background-color: transparent ;
+  padding: 1rem ;
+  cursor: pointer ;
+}
+
+.streak:hover,
+.streak:active {
+  background-color: white ;
+  color: black ;
 }
 
 .streak.is-today {
@@ -165,26 +156,21 @@ body {
 }
 
 .streak:not(.is-today) {
-  opacity: 0.55;
+  opacity: 0.45;
 }
 
 .streak-count {
+  font-size: clamp(2.4rem, 5vw, 4.2rem);
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.02em;
+  line-height: 1;
 }
 
-.add-streak {
-  align-self: flex-start;
-  margin-top: 0.8rem;
-  background: none;
-  border: 0;
-  color: inherit;
-  font: inherit;
-  letter-spacing: 0.28em;
-  font-size: clamp(0.7rem, 1.1vw, 0.9rem);
-  opacity: 0.45;
-  cursor: pointer;
-  padding: 0.5rem 0;
+.streak-label {
+  margin-top: 0.4rem;
+  font-size: 1rem ;
+  letter-spacing: 0.22em;
 }
 
 .col-right {
@@ -205,29 +191,28 @@ body {
   overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 1rem ;
 }
 
 .todo {
-  display: grid;
-  grid-template-columns: 1.4rem 1fr;
-  gap: 1rem;
-  align-items: baseline;
   width: 100%;
   background: none;
   border: 0;
+  height: 2rem ;
+  display: flex ;
+  padding-left: 0.5rem ;
+  align-items: center ;
   color: inherit;
   font: inherit;
   text-align: left;
   cursor: pointer;
-  padding: 0.55rem 0;
   font-size: clamp(1.05rem, 1.85vw, 1.55rem);
   letter-spacing: 0.12em;
 }
 
-.todo-mark {
-  opacity: 0.45;
-  font-size: 0.85em;
+.todo:hover, .todo:active {
+  background-color: white ;
+  color: black; 
 }
 
 .todo.is-done {
@@ -238,102 +223,139 @@ body {
   text-decoration: line-through;
 }
 
-.todo-add {
-  margin-top: 0.6rem;
+.dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 32px;
+  pointer-events: none;
 }
 
-.todo-add input {
-  width: 100%;
-  background: transparent;
-  border: 0;
-  outline: none;
-  color: var(--fg);
-  font: inherit;
-  letter-spacing: 0.16em;
-  font-size: clamp(1rem, 1.6vw, 1.35rem);
-  padding: 0.7rem 0;
-  user-select: text;
-  caret-color: var(--fg);
+.logs {
+  position: fixed;
+  left: 0.5rem;
+  bottom: 0.5rem;
+  max-width: 30ch ;
 }
 
-.todo-add input::placeholder {
-  color: var(--fg);
-  opacity: 0.35;
-}
 
-.send-form {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  align-items: baseline;
-  gap: 1.5rem;
-}
-
-.last-action {
-  grid-column: 1 / -1;
-  min-width: 0;
-}
-
-.last-label {
-  font-size: clamp(0.65rem, 1vw, 0.85rem);
-  letter-spacing: 0.42em;
-  opacity: 0.45;
-  margin-bottom: 0.25rem;
-}
-
-.last-label + .last-text + .last-label {
-  margin-top: 0.7rem;
-}
-
-.last-text {
-  font-size: clamp(0.85rem, 1.4vw, 1.15rem);
-  letter-spacing: 0.08em;
+.dock-line {
+  font-size: clamp(0.65rem, 1vw, 0.82rem);
+  letter-spacing: 0.22em;
   line-height: 1.4;
-  opacity: 0.85;
-  white-space: pre-wrap;
+  opacity: 0.45;
   overflow: hidden;
-  max-height: 4.2em;
+  text-overflow: ellipsis;
+  max-width: 92vw;
 }
 
-.send-form input {
-  width: 100%;
+.last-reason {
+  text-align: left ;
+  white-space: wrap ;
+  text-overflow: unset ;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.2rem;
+  margin-top: 0.55rem;
+  pointer-events: auto;
+}
+
+.actions button {
   background: transparent;
-  border: 0;
-  outline: none;
-  color: var(--fg);
-  font: inherit;
-  letter-spacing: 0.16em;
-  font-size: clamp(1rem, 1.6vw, 1.35rem);
-  padding: 0.5rem 0;
-  user-select: text;
-  caret-color: var(--fg);
-}
-
-.send-form input::placeholder {
-  color: var(--fg);
-  opacity: 0.35;
-}
-
-.send-form button {
-  background: none;
   border: 0;
   color: inherit;
   font: inherit;
   letter-spacing: 0.28em;
   font-size: clamp(0.75rem, 1.2vw, 1rem);
-  opacity: 0.55;
   cursor: pointer;
-  padding: 0.5rem 0;
+  padding: 0.55rem 0.95rem;
 }
 
-.needle-status {
-  grid-column: 1 / -1;
-  font-size: clamp(0.7rem, 1.1vw, 0.9rem);
-  letter-spacing: 0.28em;
-  opacity: 0.55;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.actions button:hover,
+.actions button:focus-visible {
+  background: #fff;
+  color: #000;
+  outline: none;
+  text-decoration: none;
+  opacity: 1;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 4vh 4vw;
+}
+
+.overlay[hidden] {
+  display: none;
+}
+
+.overlay-form {
+  width: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay-label {
+  flex: 0 0 auto;
+  font-size: clamp(0.8rem, 1.6vw, 1.2rem);
+  letter-spacing: 0.45em;
+  opacity: 0.5;
+  margin-bottom: 1.2rem;
+}
+
+
+#overlay-cmd {
+  width: 100%;
+  min-height: 1.2em;
+  max-height: 78vh;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--fg);
+  font: inherit;
+  font-size: clamp(2.2rem, 6.5vw, 5.4rem);
+  line-height: 1.15;
+  letter-spacing: 0.04em;
+  text-align: center;
+  caret-color: var(--fg);
+  user-select: text;
+  resize: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  field-sizing: content;
+}
+
+.overlay-wait {
+  font-size: clamp(1.4rem, 3.2vw, 2.6rem);
+  letter-spacing: 0.32em;
+  text-align: center;
+}
+
+.overlay.is-wait .overlay-form {
+  display: none;
 }
 
 button:focus-visible,
@@ -342,7 +364,6 @@ input:focus-visible,
 .streak:focus-visible {
   outline: none;
   opacity: 1;
-  text-decoration: underline;
   text-underline-offset: 0.35em;
 }
 

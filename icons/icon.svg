@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#000"/>
-  <text x="256" y="318" text-anchor="middle" font-size="180" font-family="ui-monospace, Consolas, monospace" font-weight="700" fill="#fff" letter-spacing="12">CC</text>
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M64.425 76L42.4798 37.9895L64.4076 0H108.284L64.425 76Z" fill="white"/>
+<path d="M36.707 47.9908L58.6476 85.9934L34.4011 128H0V111.585L36.707 47.9908Z" fill="white"/>
+<path d="M113.623 85.25L120.56 73.2306L99.0656 36.0002L70.1891 86.0163L94.4223 128H128V110.159L113.623 85.25Z" fill="white"/>
 </svg>
