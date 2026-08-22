@@ -10,13 +10,6 @@ const WX_URL =
   `&current=temperature_2m,relative_humidity_2m,weather_code` +
   `&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FKolkata`;
 
-const DEFAULT_STREAKS = [
-  { id: "music", label: "MUSIC", count: 0, lastDate: null },
-  { id: "code", label: "CODE 1H", count: 0, lastDate: null },
-  { id: "cook", label: "COOK", count: 0, lastDate: null },
-  { id: "test", label: "Test", count: 0, lastDate: null },
-];
-
 const WMO = {
   0: "CLEAR",
   1: "CLEAR",
@@ -193,12 +186,7 @@ function renderTodos() {
 }
 
 function getStreaks() {
-  const stored = load(KEYS.streaks, null);
-  if (!stored) {
-    save(KEYS.streaks, DEFAULT_STREAKS);
-    return DEFAULT_STREAKS;
-  }
-  return stored;
+  return load(KEYS.streaks, []);
 }
 
 function setStreaks(streaks) {
@@ -487,8 +475,12 @@ async function forceReload() {
 }
 
 function resetAllData() {
-  localStorage.clear();
-  location.reload();
+  setTodos([]);
+  setStreaks([]);
+  renderTodos();
+  renderStreaks();
+  showLastAction({ reasoning: "", output: "", confidence: null });
+  closeSettings();
 }
 
 const settingsRoot = document.getElementById("settings-root");
