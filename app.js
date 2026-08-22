@@ -462,6 +462,70 @@ function addStreak(label) {
   renderStreaks();
 }
 
+function deleteStreak(id) {
+  setStreaks(getStreaks().filter((s) => s.id !== id));
+  renderStreaks();
+}
+
+function clearCompletedTodos() {
+  setTodos(getTodos().filter((t) => !t.done));
+  renderTodos();
+}
+
+async function forceReload() {
+  try {
+    const regs = (navigator.serviceWorker && (await navigator.serviceWorker.getRegistrations())) || [];
+    await Promise.all(regs.map((r) => r.unregister()));
+    const keys = (window.caches && (await caches.keys())) || [];
+    await Promise.all(keys.map((k) => caches.delete(k)));
+  } catch {
+    /* still reload */
+  }
+  const url = new URL(location.href);
+  url.searchParams.set("r", String(Date.now()));
+  location.replace(url.toString());
+}
+
+function resetAllData() {
+  localStorage.clear();
+  location.reload();
+}
+
+const settingsRoot = document.getElementById("settings-root");
+const streakPick = document.getElementById("streak-pick");
+
+function closeSettings() {
+  streakPick.hidden = true;
+  streakPick.replaceChildren();
+  settingsRoot.hidden = true;
+}
+
+function openSettings() {
+  streakPick.hidden = true;
+  streakPick.replaceChildren();
+  settingsRoot.hidden = false;
+  const first = document.getElementById("set-add-streak");
+  if (first) first.focus();
+}
+
+function renderStreakPicker() {
+  const streaks = getStreaks();
+  streakPick.replaceChildren(
+    ...streaks.map((s) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = s.label;
+      btn.addEventListener("click", () => {
+        deleteStreak(s.id);
+        renderStreakPicker();
+        if (!getStreaks().length) streakPick.hidden = true;
+      });
+      return btn;
+    })
+  );
+  streakPick.hidden = streaks.length === 0;
+}
+
 document.getElementById("open-cmd").addEventListener("click", () => {
   openInput("COMMAND", runCommand);
 });
@@ -470,8 +534,41 @@ document.getElementById("open-task").addEventListener("click", () => {
   openInput("ADD TASK", (text) => addTodo(text));
 });
 
-document.getElementById("open-streak").addEventListener("click", () => {
-  openInput("ADD STREAK", (text) => addStreak(text));
+document.getElementById("open-settings").addEventListener("click", openSettings);
+document.getElementById("set-close").addEventListener("click", closeSettings);
+
+settingsRoot.addEventListener("click", (e) => {
+  if (e.target === settingsRoot) closeSettings();
+});
+
+document.getElementById("set-add-streak").addEventListener("click", () => {
+  closeSettings();
+  openInput("ADD NEW STREAK", (text) => addStreak(text));
+});
+
+document.getElementById("set-del-streak").addEventListener("click", () => {
+  if (!streakPick.hidden) {
+    streakPick.hidden = true;
+    streakPick.replaceChildren();
+    return;
+  }
+  renderStreakPicker();
+});
+
+document.getElementById("set-clear-todos").addEventListener("click", () => {
+  clearCompletedTodos();
+  closeSettings();
+});
+
+document.getElementById("set-reload").addEventListener("click", () => {
+  forceReload();
+});
+
+document.getElementById("set-reset").addEventListener("click", () => {
+  closeSettings();
+  openInput("TYPE CONFIRM", (text) => {
+    if (text.trim() === "CONFIRM") resetAllData();
+  });
 });
 
 overlayForm.addEventListener("submit", (e) => {
@@ -489,23 +586,12 @@ overlayCmd.addEventListener("keydown", (e) => {
 });
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && !overlay.hidden && !overlay.classList.contains("is-wait")) {
+  if (e.key !== "Escape") return;
+  if (!overlay.hidden && !overlay.classList.contains("is-wait")) {
     closeInput();
+    return;
   }
-});
-
-document.getElementById("reload").addEventListener("click", async () => {
-  try {
-    const regs = (navigator.serviceWorker && (await navigator.serviceWorker.getRegistrations())) || [];
-    await Promise.all(regs.map((r) => r.unregister()));
-    const keys = (window.caches && (await caches.keys())) || [];
-    await Promise.all(keys.map((k) => caches.delete(k)));
-  } catch {
-    /* still reload */
-  }
-  const url = new URL(location.href);
-  url.searchParams.set("r", String(Date.now()));
-  location.replace(url.toString());
+  if (!settingsRoot.hidden) closeSettings();
 });
 
 renderClock();

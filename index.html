@@ -57,11 +57,22 @@
       <nav class="actions">
         <button type="button" id="open-cmd">COMMAND</button>
         <button type="button" id="open-task">ADD TASK</button>
-        <button type="button" id="open-streak">ADD STREAK</button>
-        <button type="button" id="reload">RELOAD</button>
+        <button type="button" id="open-settings">SETTINGS</button>
       </nav>
     </div>
 
+    <div class="settings-root" id="settings-root" hidden>
+      <aside class="settings" id="settings">
+        <p class="settings-title">SETTINGS</p>
+        <button type="button" id="set-add-streak">ADD NEW STREAK</button>
+        <button type="button" id="set-del-streak">DELETE STREAK</button>
+        <div class="settings-pick" id="streak-pick" hidden></div>
+        <button type="button" id="set-clear-todos">CLEAR COMPLETED TODOS</button>
+        <button type="button" id="set-reload">FORCE RELOAD</button>
+        <button type="button" id="set-reset">RESET DATA</button>
+        <button type="button" id="set-close">CLOSE</button>
+      </aside>
+    </div>
     <div class="overlay" id="cmd-overlay" hidden>
       <form class="overlay-form" id="overlay-form">
         <p class="overlay-label" id="overlay-label">COMMAND</p>
